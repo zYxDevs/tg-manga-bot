@@ -25,16 +25,16 @@ from models.db import DB, ChapterFile, Subscription, LastChapter, MangaName, Man
 from pagination import Pagination
 from plugins.client import clean
 
-mangas: Dict[str, MangaCard] = dict()
-chapters: Dict[str, MangaChapter] = dict()
-pdfs: Dict[str, str] = dict()
-paginations: Dict[int, Pagination] = dict()
-queries: Dict[str, Tuple[MangaClient, str]] = dict()
-full_pages: Dict[str, List[str]] = dict()
-favourites: Dict[str, MangaCard] = dict()
-language_query: Dict[str, Tuple[str, str]] = dict()
-users_in_channel: Dict[int, dt.datetime] = dict()
-locks: Dict[int, asyncio.Lock] = dict()
+mangas: Dict[str, MangaCard] = {}
+chapters: Dict[str, MangaChapter] = {}
+pdfs: Dict[str, str] = {}
+paginations: Dict[int, Pagination] = {}
+queries: Dict[str, Tuple[MangaClient, str]] = {}
+full_pages: Dict[str, List[str]] = {}
+favourites: Dict[str, MangaCard] = {}
+language_query: Dict[str, Tuple[str, str]] = {}
+users_in_channel: Dict[int, dt.datetime] = {}
+locks: Dict[int, asyncio.Lock] = {}
 
 plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
     "🇬🇧 EN": {
@@ -71,7 +71,7 @@ class OutputOptions(enum.IntEnum):
         return self.value | other
 
 
-plugins = dict()
+plugins = {}
 for lang, plugin_dict in plugin_dicts.items():
     for name, plugin in plugin_dict.items():
         plugins[f'[{lang}] {name}'] = plugin
@@ -166,9 +166,9 @@ async def on_subs(client: Client, message: Message):
     subs = await db.get_subs(str(message.from_user.id))
     lines = []
     for sub in subs:
-        lines.append(f'<a href="{sub.url}">{sub.name}</a>')
-        lines.append(f'`/cancel {sub.url}`')
-        lines.append('')
+        lines.extend(
+            (f'<a href="{sub.url}">{sub.name}</a>', f'`/cancel {sub.url}`', '')
+        )
 
     if not lines:
         return await message.reply("You have no subscriptions yet.")
@@ -343,13 +343,21 @@ async def chapter_click(client, data, chat_id):
         download = not chapterFile
         download = download or options & OutputOptions.PDF and not chapterFile.file_id
         download = download or options & OutputOptions.CBZ and not chapterFile.cbz_id
-        download = download or options & OutputOptions.Telegraph and not chapterFile.telegraph_url
-
-        if download:
+        if (
+            download := download
+            or options & OutputOptions.Telegraph
+            and not chapterFile.telegraph_url
+        ):
             pictures_folder = await chapter.client.download_pictures(chapter)
             if not chapter.pictures:
-                return await bot.send_message(chat_id, f'There was an error parsing this chapter or chapter is missing' +
-                                              f', please check the chapter at the web\n\n{caption}')
+                return await bot.send_message(
+                    chat_id,
+                    (
+                        'There was an error parsing this chapter or chapter is missing'
+                        + f', please check the chapter at the web\n\n{caption}'
+                    ),
+                )
+
             ch_name = clean(f'{chapter.manga.name} - {chapter.name}', 45)
             pdf, thumb_path = fld2pdf(pictures_folder, ch_name)
             cbz = fld2cbz(pictures_folder, ch_name)
@@ -387,7 +395,7 @@ async def chapter_click(client, data, chat_id):
         if options & OutputOptions.CBZ:
             media_docs.append(InputMediaDocument(chapterFile.cbz_id))
 
-        if len(media_docs) == 0:
+        if not media_docs:
             return await bot.send_message(chat_id, caption)
         if len(media_docs) == 1:
             return await bot.send_document(chat_id, media_docs[0].media, caption=caption)
@@ -488,23 +496,19 @@ async def update_mangas():
     last_chapters = await db.get_all(LastChapter)
     manga_names = await db.get_all(MangaName)
 
-    subs_dictionary = dict()
-    chapters_dictionary = dict()
-    url_client_dictionary = dict()
+    subs_dictionary = {}
+    url_client_dictionary = {}
     client_url_dictionary = {client: set() for client in plugins.values()}
-    manga_dict = dict()
-
     for subscription in subscriptions:
         if subscription.url not in subs_dictionary:
             subs_dictionary[subscription.url] = []
         subs_dictionary[subscription.url].append(subscription.user_id)
 
-    for last_chapter in last_chapters:
-        chapters_dictionary[last_chapter.url] = last_chapter
+    chapters_dictionary = {
+        last_chapter.url: last_chapter for last_chapter in last_chapters
+    }
 
-    for manga in manga_names:
-        manga_dict[manga.url] = manga
-
+    manga_dict = {manga.url: manga for manga in manga_names}
     for url in subs_dictionary:
         for ident, client in plugins.items():
             if ident in subsPaused:
@@ -520,15 +524,15 @@ async def update_mangas():
         # new_urls = [url for url in urls if not chapters_dictionary.get(url)]
         # print(f'New Urls:\t{new_urls}')
         to_check = [chapters_dictionary[url] for url in urls if chapters_dictionary.get(url)]
-        if len(to_check) == 0:
+        if not to_check:
             continue
         updated, not_updated = await client.check_updated_urls(to_check)
         for url in not_updated:
             del url_client_dictionary[url]
-        # print(f'Updated:\t{list(updated)}')
-        # print(f'Not Updated:\t{list(not_updated)}')
+            # print(f'Updated:\t{list(updated)}')
+            # print(f'Not Updated:\t{list(not_updated)}')
 
-    updated = dict()
+    updated = {}
 
     for url, client in url_client_dictionary.items():
         try:
@@ -546,8 +550,7 @@ async def update_mangas():
                     if chapter.url == last_chapter.chapter_url:
                         break
                     new_chapters.append(chapter)
-                new_chapters = new_chapters[:20]
-                if new_chapters:
+                if new_chapters := new_chapters[:20]:
                     last_chapter.chapter_url = new_chapters[0].url
                     await db.add(last_chapter)
                     updated[url] = list(reversed(new_chapters))

@@ -59,7 +59,7 @@ class McReaderClient(MangaClient):
 
         manga_items: List[PageElement] = ul.find_all("li")
 
-        urls = dict()
+        urls = {}
 
         for manga_item in manga_items:
 
@@ -71,7 +71,7 @@ class McReaderClient(MangaClient):
             chapter_item = manga_item.findNext("h5", {"class": "chapter-title"})
             chapter_text: str = chapter_item.text.strip()
             m = re.match(r'.* (.*)-eng.*', chapter_text)
-            number = m.group(1)
+            number = m[1]
             number.replace('-', '.')
 
             urls[manga_url] = number
@@ -85,9 +85,7 @@ class McReaderClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [quote(img.get('src'), safe=':/%') for img in images]
-
-        return images_url
+        return [quote(img.get('src'), safe=':/%') for img in images]
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote_plus(query)

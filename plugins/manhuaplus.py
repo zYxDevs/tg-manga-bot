@@ -56,7 +56,7 @@ class ManhuaPlusClient(MangaClient):
 
         manga_items: List[PageElement] = bs.find_all("div", {"class": "page-item-detail"})
 
-        urls = dict()
+        urls = {}
 
         for manga_item in manga_items:
 
@@ -76,9 +76,7 @@ class ManhuaPlusClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [quote(img.get('src'), safe=':/%') for img in images]
-
-        return images_url
+        return [quote(img.get('src'), safe=':/%') for img in images]
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote_plus(query)

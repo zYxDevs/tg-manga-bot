@@ -38,10 +38,15 @@ class MangaKakalotClient(MangaClient):
         url = [item['story_link'] for item in li]
         images = [item['image'] for item in li]
 
-        mangas = [MangaCard(self if tup[1].startswith(self.base_url.geturl()) else ManganatoClient(), *tup)
-                  for tup in zip(names, url, images)]
-
-        return mangas
+        return [
+            MangaCard(
+                self
+                if tup[1].startswith(self.base_url.geturl())
+                else ManganatoClient(),
+                *tup
+            )
+            for tup in zip(names, url, images)
+        ]
 
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
@@ -62,7 +67,7 @@ class MangaKakalotClient(MangaClient):
 
         manga_items: List[PageElement] = bs.find_all("div", {"class": "itemupdate first"})
 
-        urls = dict()
+        urls = {}
 
         for manga_item in manga_items:
 
@@ -84,9 +89,7 @@ class MangaKakalotClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [quote(img.get('src'), safe=':/%') for img in images]
-
-        return images_url
+        return [quote(img.get('src'), safe=':/%') for img in images]
 
     async def get_picture(self, manga_chapter: MangaChapter, url, *args, **kwargs):
         headers = dict(self.headers)

@@ -52,16 +52,12 @@ class TMOClient(MangaClient):
 
         trs = bs.find_all("tr", {"class": "upload-file-row"})
 
-        urls = [tr.td.a.get("href") for tr in trs]
-
-        return urls
+        return [tr.td.a.get("href") for tr in trs]
 
     async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
 
-        cascade = bs.find("a", {"title": "Cascada"})
-
-        if cascade:
+        if cascade := bs.find("a", {"title": "Cascada"}):
             url = cascade.get('href')
             content = await self.get_url(url)
             bs = BeautifulSoup(content, "html.parser")
@@ -72,9 +68,7 @@ class TMOClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [quote(img.get('data-src'), safe=':/%').strip() for img in images]
-
-        return images_url
+        return [quote(img.get('data-src'), safe=':/%').strip() for img in images]
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote_plus(query)

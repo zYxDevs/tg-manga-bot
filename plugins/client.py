@@ -106,8 +106,7 @@ class MangaClient(ClientSession, metaclass=LanguageSingleton):
             await self.set_pictures(manga_chapter)
 
         folder_name = f'{clean(manga_chapter.manga.name)}/{clean(manga_chapter.name)}'
-        i = 0
-        for picture in manga_chapter.pictures:
+        for i, picture in enumerate(manga_chapter.pictures):
             ext = picture.split('.')[-1]
             file_name = f'{folder_name}/{format(i, "05d")}.{ext}'
             for _ in range(3):
@@ -117,8 +116,6 @@ class MangaClient(ClientSession, metaclass=LanguageSingleton):
                     break
             else:
                 raise ValueError
-            i += 1
-
         return Path(f'cache/{manga_chapter.client.name}') / folder_name
 
     async def get_picture(self, manga_chapter: MangaChapter, url, *args, **kwargs):

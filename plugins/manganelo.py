@@ -50,7 +50,7 @@ class ManganeloClient(MangaClient):
 
         manga_items = bs.find_all("div", {"class": "content-genres-item"})
 
-        urls = dict()
+        urls = {}
 
         for manga_item in manga_items:
             manga_url = f'{self.base_url.geturl()}' \
@@ -73,9 +73,7 @@ class ManganeloClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [quote(img.get('data-src'), safe=':/%') for img in images]
-
-        return images_url
+        return [quote(img.get('data-src'), safe=':/%') for img in images]
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote(query)

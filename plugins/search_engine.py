@@ -15,24 +15,19 @@ class KMP:
         lps = [0] * M
         i = 1
 
-        # the loop calculates lps[i] for i = 1 to M-1 
+        # the loop calculates lps[i] for i = 1 to M-1
         while i < M:
             if self.pattern[i] == self.pattern[length]:
                 length += 1
                 lps[i] = length
                 i += 1
+            elif length == 0:
+                lps[i] = 0
+                i += 1
+
             else:
-                # This is tricky. Consider the example. 
-                # AAACAAAA and i = 7. The idea is similar
-                # to search step. 
-
-                if length != 0:
-                    length = lps[length - 1]
-                    # Also, note that we do not increment i here 
-                else:
-                    lps[i] = 0
-                    i += 1
-
+                length = lps[length - 1]
+                # Also, note that we do not increment i here 
         return lps
 
     # Python program for KMP Algorithm 
