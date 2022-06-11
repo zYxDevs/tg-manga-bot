@@ -16,7 +16,7 @@ def fld2pdf(folder: Path, out: str):
     thumbnail = Image.open(files[0]).convert('RGB')
     tg_max_size = (300, 300)
     thumbnail.thumbnail(tg_max_size)
-    thumb_path = folder / 'thumbnail' / f'thumbnail.jpg'
+    thumb_path = folder / 'thumbnail' / 'thumbnail.jpg'
     os.makedirs(thumb_path.parent, exist_ok=True)
     thumbnail.save(thumb_path)
     thumbnail.close()

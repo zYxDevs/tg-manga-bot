@@ -55,7 +55,7 @@ class MangatigreClient(MangaClient):
 
         manga_items: List[PageElement] = bs.find_all("article", {"class": "chapter-block"})
 
-        urls = dict()
+        urls = {}
 
         for manga_item in manga_items:
 
@@ -90,9 +90,7 @@ class MangatigreClient(MangaClient):
         images = ul.find_all('img')
         images = [f"https:{img.get('data-src') or img.get('src')}" for img in images]
 
-        images_url = [quote(img, safe=':/%') for img in images]
-
-        return images_url
+        return [quote(img, safe=':/%') for img in images]
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         main_page = await self.get_url(self.base_url.geturl())

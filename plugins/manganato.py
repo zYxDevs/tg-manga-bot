@@ -37,9 +37,7 @@ class ManganatoClient(MangaClient):
         url = [item['link_story'] for item in li]
         images = [item['image'] for item in li]
 
-        mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
-
-        return mangas
+        return [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
@@ -58,7 +56,7 @@ class ManganatoClient(MangaClient):
 
         manga_items: List[PageElement] = bs.find_all("div", {"class": "content-homepage-item"})
 
-        urls = dict()
+        urls = {}
 
         for manga_item in manga_items:
 
@@ -80,14 +78,12 @@ class ManganatoClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [quote(img.get('src'), safe=':/%') for img in images]
-
-        return images_url
+        return [quote(img.get('src'), safe=':/%') for img in images]
 
     async def get_picture(self, manga_chapter: MangaChapter, url, *args, **kwargs):
         pattern = re.compile(r'(.*\.com/)')
         match = re.match(pattern, manga_chapter.url)
-        referer = match.group(1)
+        referer = match[1]
 
         headers = dict(self.headers)
         headers['Referer'] = referer

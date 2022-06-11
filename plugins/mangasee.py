@@ -26,28 +26,22 @@ class MangaSeeClient(MangaClient):
         url = [f"{self.manga_url}/{doc['i']}" for doc in documents]
         images = [f"{self.cover_url}/{doc['i']}.jpg" for doc in documents]
 
-        mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
-
-        return mangas
+        return [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
     def chapter_url_encode(self, chapter):
         chapter = chapter['Chapter']
-        Index = ""
-        t = chapter[0:1]
-        if t != '1':
-            Index = "-index-" + t
+        t = chapter[:1]
+        Index = f"-index-{t}" if t != '1' else ""
         n = int(chapter[1:-1])
-        m = ""
         a = chapter[-1]
-        if a != '0':
-            m = "." + a
-        return "-chapter-" + str(n) + m + Index + ".html"
+        m = f".{a}" if a != '0' else ""
+        return f"-chapter-{n}{m}{Index}.html"
 
     def chapter_display(self, chapter):
         chapter = chapter['Chapter']
         t = int(chapter[1:-1])
         n = chapter[-1]
-        return t if n == '0' else str(t) + "." + n
+        return t if n == '0' else f"{t}.{n}"
 
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
 
@@ -93,13 +87,10 @@ class MangaSeeClient(MangaClient):
     def chapterImage(self, ChapterString):
         Chapter = ChapterString[1:-1]
         Odd = ChapterString[-1]
-        if Odd == '0':
-            return Chapter
-        else:
-            return Chapter + "." + Odd
+        return Chapter if Odd == '0' else f"{Chapter}.{Odd}"
 
     def pageImage(self, PageString):
-        s = "000" + str(PageString)
+        s = f"000{str(PageString)}"
         return s[-3:]
 
     async def pictures_from_chapters(self, content: bytes, response=None):
@@ -127,11 +118,10 @@ class MangaSeeClient(MangaClient):
 
         pages = list(range(1, int(curChapter['Page']) + 1))
 
-        images_url = [
+        return [
             f"https://{curPath}/manga/{index_str}/{'' if curChapter['Directory'] == '' else curChapter['Directory'] + '/'}{self.chapterImage(curChapter['Chapter'])}-{self.pageImage(page)}.png"
-            for page in pages]
-
-        return images_url
+            for page in pages
+        ]
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         def text_from_document(doc) -> str:

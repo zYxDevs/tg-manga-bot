@@ -63,7 +63,7 @@ class MangasInClient(MangaClient):
         lis: List[PageElement] = bs.findAll("li", recursive=True)
         lis: List[PageElement] = [li for li in lis if isinstance(li.get('class'), list) and len(li.get('class')) > 0 and li.get('class')[0].startswith('volume-')]
 
-        items = [li for li in lis]
+        items = list(lis)
 
         texts = [self.build_chapter_name(item) for item in items]
         links = [item.findNext('daka').a.get('href') for item in items]
@@ -75,7 +75,7 @@ class MangasInClient(MangaClient):
 
         manga_items: List[PageElement] = bs.find_all("div", {"class": "manga-item"})
 
-        urls = dict()
+        urls = {}
 
         for manga_item in manga_items:
 
@@ -95,9 +95,7 @@ class MangasInClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [quote(img.get('data-src'), safe=':/%') for img in images]
-
-        return images_url
+        return [quote(img.get('data-src'), safe=':/%') for img in images]
 
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:

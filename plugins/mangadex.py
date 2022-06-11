@@ -56,9 +56,7 @@ class MangaDexClient(MangaClient):
         images = [f'https://uploads.mangadex.org/covers/{card["id"]}/{cover_filename(card["relationships"])}.512.jpg'
                   for card in cards]
 
-        mangas = [MangaDexMangaCard(self, *tup) for tup in zip(names, url, images, ids)]
-
-        return mangas
+        return [MangaDexMangaCard(self, *tup) for tup in zip(names, url, images, ids)]
 
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         dt = json.loads(page.decode())
@@ -94,9 +92,7 @@ class MangaDexClient(MangaClient):
         chapter_hash = dt['chapter']['hash']
         file_names = dt['chapter']['data']
 
-        images_url = [f"{base_url}/data/{chapter_hash}/{file}" for file in file_names]
-
-        return images_url
+        return [f"{base_url}/data/{chapter_hash}/{file}" for file in file_names]
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote(query)
@@ -157,7 +153,7 @@ class MangaDexClient(MangaClient):
         for lc in last_chapters:
             upd = False
             for manga_id, ch_id in updates.items():
-                if manga_id in lc.url and not ch_id in lc.chapter_url:
+                if manga_id in lc.url and ch_id not in lc.chapter_url:
                     upd = True
                     updated.append(lc.url)
                     break

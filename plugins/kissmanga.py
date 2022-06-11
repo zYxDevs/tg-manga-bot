@@ -46,7 +46,13 @@ class KissMangaClient(MangaClient):
         links = [item.get('href') for item in items]
         texts: List[str] = [item.get('title').strip() for item in items]
 
-        texts = [(text if not text.startswith(manga.name) else text[len(manga.name):].strip()) for text in texts]
+        texts = [
+            text[len(manga.name) :].strip()
+            if text.startswith(manga.name)
+            else text
+            for text in texts
+        ]
+
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
@@ -56,7 +62,7 @@ class KissMangaClient(MangaClient):
 
         manga_items = bs.find_all("div", {"class": "media-body"})
 
-        urls = dict()
+        urls = {}
 
         for manga_item in manga_items:
             manga_url = manga_item.findNext('a').get('href')
@@ -75,9 +81,7 @@ class KissMangaClient(MangaClient):
 
         ul = bs.find("p", {"id": "arraydata"})
 
-        images_url = ul.text.split(',')
-
-        return images_url
+        return ul.text.split(',')
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote_plus(query)

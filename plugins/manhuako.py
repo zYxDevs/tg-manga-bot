@@ -55,7 +55,7 @@ class ManhuaKoClient(MangaClient):
 
         manga_items = bs.find_all("div", {"class": "card"})
 
-        urls = dict()
+        urls = {}
 
         for manga_item in manga_items:
             manga_url = manga_item.findNext('a', {'class': 'white-text'}).get('href')
@@ -76,9 +76,7 @@ class ManhuaKoClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [quote(img.get('src'), safe=':/%') for img in images]
-
-        return images_url
+        return [quote(img.get('src'), safe=':/%') for img in images]
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote_plus(query)
